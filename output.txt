@@ -1,0 +1,4 @@
+time=30039650, result= 6
+
+time=30039670, result= 0
+

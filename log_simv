@@ -1,0 +1,12 @@
+Command: vcs -f rtl_list.lf -full64 -R +v2k -debug_pp test_core_tb.v -l log_simv \
++incdir+./rtl_split/
+                         Chronologic VCS (TM)
+        Version I-2014.03-2_Full64 -- Wed Apr 15 10:13:06 2015
+               Copyright (c) 1991-2014 by Synopsys Inc.
+                         ALL RIGHTS RESERVED
+
+This program is proprietary and confidential information of Synopsys Inc.
+and may be used and disclosed only as authorized in a license agreement
+controlling such use and disclosure.
+
+CPU time: .058 seconds to compile
