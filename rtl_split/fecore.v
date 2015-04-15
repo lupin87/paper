@@ -146,85 +146,85 @@ begin
   end
 end
 
-assign taddsubdct_out=(shiftc==15)?addsubdct_out[26:11]:16'bz;
-assign taddsubdct_out=(shiftc==14)?addsubdct_out[26:11]:16'bz;
-assign taddsubdct_out=(shiftc==13)?addsubdct_out[26:11]:16'bz;
-assign taddsubdct_out=(shiftc==12)?addsubdct_out[27:12]:16'bz;
-assign taddsubdct_out=(shiftc==11)?addsubdct_out[26:11]:16'bz;
-assign taddsubdct_out=(shiftc==10)?addsubdct_out[25:10]:16'bz;
-assign taddsubdct_out=(shiftc==9)?addsubdct_out[24:9]:16'bz;
-assign taddsubdct_out=(shiftc==8)?addsubdct_out[23:8]:16'bz;
-assign taddsubdct_out=(shiftc==7)?addsubdct_out[23:7]:16'bz;
-assign taddsubdct_out=(shiftc==6)?addsubdct_out[21:6]:16'bz;
-assign taddsubdct_out=(shiftc==5)?addsubdct_out[20:5]:16'bz;
-assign taddsubdct_out=(shiftc==4)?addsubdct_out[19:4]:16'bz;
-assign taddsubdct_out=(shiftc==3)?addsubdct_out[18:3]:16'bz;
-assign taddsubdct_out=(shiftc==2)?addsubdct_out[17:2]:16'bz;
-assign taddsubdct_out=(shiftc==1)?addsubdct_out[16:1]:16'bz;
-assign taddsubdct_out=(shiftc==0)?addsubdct_out[15:0]:16'bz;
+//assign taddsubdct_out=(shiftc==15)?addsubdct_out[26:11]:16'bz;
+//assign taddsubdct_out=(shiftc==14)?addsubdct_out[26:11]:16'bz;
+//assign taddsubdct_out=(shiftc==13)?addsubdct_out[26:11]:16'bz;
+//assign taddsubdct_out=(shiftc==12)?addsubdct_out[27:12]:16'bz;
+//assign taddsubdct_out=(shiftc==11)?addsubdct_out[26:11]:16'bz;
+//assign taddsubdct_out=(shiftc==10)?addsubdct_out[25:10]:16'bz;
+//assign taddsubdct_out=(shiftc==9)?addsubdct_out[24:9]:16'bz;
+//assign taddsubdct_out=(shiftc==8)?addsubdct_out[23:8]:16'bz;
+//assign taddsubdct_out=(shiftc==7)?addsubdct_out[23:7]:16'bz;
+//assign taddsubdct_out=(shiftc==6)?addsubdct_out[21:6]:16'bz;
+//assign taddsubdct_out=(shiftc==5)?addsubdct_out[20:5]:16'bz;
+//assign taddsubdct_out=(shiftc==4)?addsubdct_out[19:4]:16'bz;
+//assign taddsubdct_out=(shiftc==3)?addsubdct_out[18:3]:16'bz;
+//assign taddsubdct_out=(shiftc==2)?addsubdct_out[17:2]:16'bz;
+//assign taddsubdct_out=(shiftc==1)?addsubdct_out[16:1]:16'bz;
+//assign taddsubdct_out=(shiftc==0)?addsubdct_out[15:0]:16'bz;
 
-assign tdelta_out=(shiftd==3)?delta_out[18:3]:16'bz;
-assign tdelta_out=(shiftd==2)?delta_out[17:2]:16'bz;
-assign tdelta_out=(shiftd==1)?delta_out[16:1]:16'bz;
-assign tdelta_out=(shiftd==0)?delta_out[15:0]:16'bz;
+//assign tdelta_out=(shiftd==3)?delta_out[18:3]:16'bz;
+//assign tdelta_out=(shiftd==2)?delta_out[17:2]:16'bz;
+//assign tdelta_out=(shiftd==1)?delta_out[16:1]:16'bz;
+//assign tdelta_out=(shiftd==0)?delta_out[15:0]:16'bz;
 
-assign log_in=(log_sel)?{{7{eadder_out[38]}},eadder_out}:addmel_out;
+//assign log_in=(log_sel)?{{7{eadder_out[38]}},eadder_out}:addmel_out;
 //regfft_insel=0:doc du lieu da duoc windowing vao thanh ghi phan thuc regfft_inr dong thoi xoa noi dung thanh ghi phan ao regfft_ini
 //regfft_clear=1:xoa noi dung thanh ghi regfft_inr va regfft_ini
 //regfft_clear=0 va regfft_insel=1:ghi noi dung cac tang FFT vao thanh ghi regfft
 assign regfft_ini=(regfft_insel & ~regfft_clear)?addsubfft_outi:0;//phan ao output cua FFT
-assign regfft_inrt=(regfft_insel)?addsubfft_outr:{{19{win_out[20]}},win_out};
+assign regfft_inrt=(regfft_insel)?addsubfft_outr:{{24{ram_data[15]}},ram_data};
 assign regfft_inr=(regfft_clear)?0:regfft_inrt;//phan thuc output cua FFT
 
 assign addsubfft_regfftr=(addsubfft_shift)?{regfft_outr[33:0],6'b0}:regfft_outr;
 assign addsubfft_regffti=(addsubfft_shift)?{regfft_outi[33:0],6'b0}:regfft_outi;
 
-assign regmel_in=addmel_out[44:0];
-
-assign regdct_in=log_out;
-
-assign regc_in=(regc_sel==0)?regc_out:16'bz;
-assign regc_in=(regc_sel==1)?reglog_out:16'bz;//logged energy of frame
+//assign regmel_in=addmel_out[44:0];
+//
+//assign regdct_in=log_out;
+//
+//assign regc_in=(regc_sel==0)?regc_out:16'bz;
+//assign regc_in=(regc_sel==1)?reglog_out:16'bz;//logged energy of frame
 //assign regc_in=(regc_sel==1)?log_out:16'bz;//logged energy of frame Thuong change
-assign regc_in=(regc_sel==2)?taddsubdct_out:16'bz;//cepstrum coefficients of frame
-assign regc_in=(regc_sel==3)?tdelta_out:16'bz;//delta coefficients of frame
-
-assign regcep_in=regc_out;//thanh ghi vecto dac trung MFCC
+//assign regc_in=(regc_sel==2)?taddsubdct_out:16'bz;//cepstrum coefficients of frame
+//assign regc_in=(regc_sel==3)?tdelta_out:16'bz;//delta coefficients of frame
+//
+//assign regcep_in=regc_out;//thanh ghi vecto dac trung MFCC
 
 //register
 
-reghw reghw(cham_data,cham_addr,clk,reset);//1.Register for Hamming Window coefficients
+//reghw reghw(cham_data,cham_addr,clk,reset);//1.Register for Hamming Window coefficients
 
 regw regw(cfft_datar,cfft_datai,cfft_addr,clk,reset);//2.Register for FFT coefficients,W
 
-rege rege(regffte_out,regffte_in,regffte_addr,regffte_wren,clk,reset);//3.Spectrum Register (register for energy coefficients)
-
-regp regp(regmel_out,regmel_in,regmel_addr,regmel_wren,clk,reset);//4.Power coefficient Register
+//rege rege(regffte_out,regffte_in,regffte_addr,regffte_wren,clk,reset);//3.Spectrum Register (register for energy coefficients)
+//
+//regp regp(regmel_out,regmel_in,regmel_addr,regmel_wren,clk,reset);//4.Power coefficient Register
 
 regfft regfft(regfft_outr,regfft_outi,regfft_inr,regfft_ini,regfft_addr,regfft_wren,clk,reset);//5.Register for 128 points FFT (256 elements,128 part real,128 part imaginary)
 
-regdct regdct(regdct_out,regdct_in,regdct_addr,regdct_wren,clk,reset);//6.Logged power coefficient register
-
-regcdct regcdct(cdct_addr,cdct_data,clk,reset);//7.Feature Buffer Register
-
-regc regc(regc_out,regc_in,regc_addr,regc_wren,clk,reset);//8.Feature Buffer Register
-
-reglog reglog(clk,reset,reglog_addr,reglog_wren,log_out, reglog_out);//9. Log energy Register - Thuong add
+//regdct regdct(regdct_out,regdct_in,regdct_addr,regdct_wren,clk,reset);//6.Logged power coefficient register
+//
+//regcdct regcdct(cdct_addr,cdct_data,clk,reset);//7.Feature Buffer Register
+//
+//regc regc(regc_out,regc_in,regc_addr,regc_wren,clk,reset);//8.Feature Buffer Register
+//
+//reglog reglog(clk,reset,reglog_addr,reglog_wren,log_out, reglog_out);//9. Log energy Register - Thuong add
 
 //
 
-square square(square_out,ram_data,square_en,clk,reset);
-
-eadder eadder(eadder_out,eadder_en,eadder_new,eadder_sel,square_out,ereg_out,clk,reset);
-
-ereg ereg(eadder_out,ereg_out,ereg_we,clk,reset);
-
-log log(log_in,log_out,log_en,log_overf,clk,reset);
-
-preemp preemp(ram_data,preemp_out,preemp_en,preemp_new,clk,reset, preemp_state_en);
-//preemp preemp(ram_data,preemp_out,preemp_en_out,preemp_new,clk,reset);
-
-window window(preemp_out,cham_data,win_out,(win_en&win_en_mask),clk,reset);
+//square square(square_out,ram_data,square_en,clk,reset);
+//
+//eadder eadder(eadder_out,eadder_en,eadder_new,eadder_sel,square_out,ereg_out,clk,reset);
+//
+//ereg ereg(eadder_out,ereg_out,ereg_we,clk,reset);
+//
+//log log(log_in,log_out,log_en,log_overf,clk,reset);
+//
+//preemp preemp(ram_data,preemp_out,preemp_en,preemp_new,clk,reset, preemp_state_en);
+////preemp preemp(ram_data,preemp_out,preemp_en_out,preemp_new,clk,reset);
+//
+//window window(preemp_out,cham_data,win_out,(win_en&win_en_mask),clk,reset);
 
 complexm complexm(regfft_outr[30:0],regfft_outi[30:0],cfft_datar,cfft_datai,
         com_out1,com_out2,com_out3,com_out4,cm_en,clk,reset);
@@ -234,16 +234,16 @@ comadd comadd(com_out1,com_out2,com_out3,com_out4,cm_outr,cm_outi,comadd_en,cm_s
 addsubfft addsubfft(addsubfft_regfftr,addsubfft_regffti,cm_outr,cm_outi,addsubfft_outr,
         addsubfft_outi,addsubfft_en,addsubfft_sel,clk,reset);
 
-sroot sroot(regfft_outr,regfft_outi,regffte_in,sroot_en,clk,reset);
-
-//addmel addmel(regffte_out,regmel_out,addmel_out,addmel_en,addmel_sel,addmel_new,clk,reset);// Thuong change to frame calculation
-addmel addmel(regffte_out,regmel_out,addmel_out,addmel_en,1'b0,addmel_new,clk,reset);
-
-muldct muldct(regdct_out,cdct_data,muldct_out,muldct_en,clk,reset);
-
-addsubdct addsubdct(muldct_out,addsubdct_out,addsubdct_en,addsubdct_sub,addsubdct_new,clk,reset);
-
-delta delta(delta_out,regc_out,delta_new,delta_sub,delta_shift,delta_en,clk,reset);
+//sroot sroot(regfft_outr,regfft_outi,regffte_in,sroot_en,clk,reset);
+//
+////addmel addmel(regffte_out,regmel_out,addmel_out,addmel_en,addmel_sel,addmel_new,clk,reset);// Thuong change to frame calculation
+//addmel addmel(regffte_out,regmel_out,addmel_out,addmel_en,1'b0,addmel_new,clk,reset);
+//
+//muldct muldct(regdct_out,cdct_data,muldct_out,muldct_en,clk,reset);
+//
+//addsubdct addsubdct(muldct_out,addsubdct_out,addsubdct_en,addsubdct_sub,addsubdct_new,clk,reset);
+//
+//delta delta(delta_out,regc_out,delta_new,delta_sub,delta_shift,delta_en,clk,reset);
 
 fecon fecon(.ram_addr(ram_addri),.ram_addrt(ram_addrt),
       .square_en(square_en),
