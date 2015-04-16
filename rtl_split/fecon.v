@@ -403,100 +403,124 @@ begin
     if(preemp_en==1)
     begin
       ram_addrt<=1;
-      regfft_wren<=0;
+//       regfft_wren<=0;
 //Thuong 29Oct13      if(regfft_addrt==78)
-      if(regfft_addrt==159)
+      if(regfft_addrt==255)
       begin
         regc_addr[6:4]<=7;
         regc_addr[3:0]<=0;
         preemp_new<=1;//them
-        state<=state+1;
       end
     end
     else
     begin
-      if(regfft_addrt==157) begin
+      if(regfft_addrt==255) begin
           ram_addr<=ram_addr_st;
+          regfft_addr<=1;
+          regfft_addrt<=0;
+          state<=3;
+          regfft_wren<=0;
       end
       else begin
+          regfft_wren<=~regfft_wren;
           ram_addr<=ram_addr+1;
+          regfft_addrt<=regfft_addrt+1;
+          regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
+          regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
       end
       ram_addrt<=0;
       cham_addr<=cham_addr+1;
-      regfft_wren<=1;
-      regfft_addrt<=regfft_addrt+1;
-      regfft_addr<=regfft_addrt;//moi them vao
-      regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
-            regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
+//       regfft_addr<=regfft_addrt;//moi them vao
     end
   end
  end  
   3://finish preemp and windowing, energy calculation
   begin
-    //eadder_en<=~eadder_en; // Thuong comment
-    cham_addr<=0;
-    ram_addrt<=0;
-//    eadder_new<=0;
-    case(statef)
-    0:
-    begin
-      eadder_en<=~eadder_en; // Thuong comment
-      eadder_new<=1;
-      preemp_en<=0;
-      win_en<=~win_en;
-      regfft_addrt<=regfft_addrt+1;
-      regfft_addr<=regfft_addrt;//moi them vao
-      regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
-            regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
-      regfft_wren<=~regfft_wren;
-      preemp_new<=0;//them
-      ram_addrt<=1;//them
-      if (reglog_addr!= 4 && frame_num != 1'b0)
-      reglog_addr <= reglog_addr + 1;
+      if(regfft_addrt==0)
+        begin
+         regfft_insel<=1;
+         regfft_clear<=0;
+         addsubfft_sel<=1;//moi them vao ngay 18/7/2010
+         regfft_addr<=1;
+         regfft_addrt<=0;
+         regfft_wren<=0;
+         state<=5;
+        end
       else
-      reglog_addr <= 0;
-      statef<=statef+1;
-    end
-    1:
-    begin
-      eadder_new<=0;
-      eadder_en<=~eadder_en; // Thuong comment
-      ram_addrt<=1;//them
-      regfft_wren<=~regfft_wren;
-      win_en<=~win_en;
-      statef<=statef+1;
-      log_sel<=0; // Thuong change to adjust timing
-    end
-    2:
-    begin
-      ram_addrt<=1;//them
-      eadder_sel<=1;
-      regfft_addrt<=regfft_addrt+1;
-      regfft_addr<=regfft_addrt;//moi them vao
-      regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
+         begin
+           regfft_addrt<=regfft_addrt+1;
+           regfft_addr<=regfft_addrt;//moi them vao
+           regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
             regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
-      regfft_wren<=~regfft_wren;
-      regfft_clear<=1;//ghi xong 80 mau, xoa 48 (48=128-80) thanh ghi con lai ve 0 => Thuong change to statef 2
-      ereg_we<=1;
-      statef<=statef+1;
-    end
-    3:
-    begin
-      ram_addrt<=1;//them
-      eadder_sel<=0;
-      regfft_addrt<=regfft_addrt+1;
-      regfft_addr<=regfft_addrt;//moi them vao
-      regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
-            regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
-      eadder_sel<=0;
-     // regfft_clear<=1;//ghi xong 80 mau, xoa 48 (48=128-80) thanh ghi con lai ve 0 => Thuong change to statef 2
-//      if(frame_num!=0)
-        
-      ereg_we<=0;
-      statef<=0;
-      state<=state+1;
-    end
-    endcase
+         end
+//           regfft_addr<=1;
+//           regfft_addrt<=0;
+//           state<=5;
+//           regfft_wren<=0;
+//     //eadder_en<=~eadder_en; // Thuong comment
+//     cham_addr<=0;
+//     ram_addrt<=0;
+// //    eadder_new<=0;
+//     case(statef)
+//     0:
+//     begin
+//       eadder_en<=~eadder_en; // Thuong comment
+//       eadder_new<=1;
+//       preemp_en<=0;
+//       win_en<=~win_en;
+//       regfft_addrt<=regfft_addrt+1;
+//       regfft_addr<=regfft_addrt;//moi them vao
+//       regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
+//             regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
+//       regfft_wren<=~regfft_wren;
+//       preemp_new<=0;//them
+//       ram_addrt<=1;//them
+//       if (reglog_addr!= 4 && frame_num != 1'b0)
+//       reglog_addr <= reglog_addr + 1;
+//       else
+//       reglog_addr <= 0;
+//       statef<=statef+1;
+//     end
+//     1:
+//     begin
+//       eadder_new<=0;
+//       eadder_en<=~eadder_en; // Thuong comment
+//       ram_addrt<=1;//them
+//       regfft_wren<=~regfft_wren;
+//       win_en<=~win_en;
+//       statef<=statef+1;
+//       log_sel<=0; // Thuong change to adjust timing
+//     end
+//     2:
+//     begin
+//       ram_addrt<=1;//them
+//       eadder_sel<=1;
+//       regfft_addrt<=regfft_addrt+1;
+//       regfft_addr<=regfft_addrt;//moi them vao
+//       regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
+//             regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
+//       regfft_wren<=~regfft_wren;
+//       regfft_clear<=1;//ghi xong 80 mau, xoa 48 (48=128-80) thanh ghi con lai ve 0 => Thuong change to statef 2
+//       ereg_we<=1;
+//       statef<=statef+1;
+//     end
+//     3:
+//     begin
+//       ram_addrt<=1;//them
+//       eadder_sel<=0;
+//       regfft_addrt<=regfft_addrt+1;
+//       regfft_addr<=regfft_addrt;//moi them vao
+//       regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
+//             regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
+//       eadder_sel<=0;
+//      // regfft_clear<=1;//ghi xong 80 mau, xoa 48 (48=128-80) thanh ghi con lai ve 0 => Thuong change to statef 2
+// //      if(frame_num!=0)
+//         
+//       ereg_we<=0;
+//       statef<=0;
+//       state<=state+1;
+//     end
+//     endcase
   end
   4://clear regfft, co sua regc_addr
   begin
