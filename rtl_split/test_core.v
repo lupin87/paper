@@ -40,8 +40,11 @@ wire fv_ack;  //bat dau decoder
 wire fs;      //from parain, fs=1 when fefinish=1
 wire fefinish;//fefinish=1-->ket thuc tin hieu ngo vao
 wire [7:0]framenum;
+wire [7:0]rd_addr;
 
 wire [15:0]speech_data;
+wire [15:0]ram_data_in;
+wire rd_en;
 wire speech_wren=(!ready)|fs;
 wire fram_wren=ready^fs;
 
@@ -51,7 +54,7 @@ wire [15:0]data_in_de=((regcep_addr[4:0]==12)|(regcep_addr[4:0]==25))?{{10{regce
 fecore fecore(fe_data,fe_address,
       regcep_in,feregcep_addr,regcep_wren,
       framenum,shiftc,shiftd,
-      start,ready,fefinish,fs,clk,reset);
+      start,ready,fefinish,fs,clk,reset, rd_addr, rd_en, ram_data_in);
 			
 decore decore(clk,ready,start,fv_ack,de_data,de_address,
 			data_in_de,deregcep_addr,
@@ -67,7 +70,7 @@ parain parain(.fram_address(fram_address),.fram_datain(fram_datain),
 		.word_num(word_num),.state_num(state_num),.ready(ready),
 		.result_ack(result_ack),.fefinish(fefinish),.fs(fs),.fv_ack(fv_ack),.reset(reset),.clk(clk));
 
-regcep regcep(regcep_out,regcep_in,regcep_addr,regcep_wren,clk,reset);//4.MFCC RAM
+regcep regcep(ram_data_in,regcep_in,rd_addr,rd_en,clk,reset);//4.MFCC RAM
 
 model_ram  model_ram(.fram_dataout(fram_datain1),.fram_addr(fram_address),.fram_wren(fram_wren));//5.flash RAM stored model parameters
 

@@ -13,23 +13,17 @@ integer i,j;
 reg [15:0] registers[WIDTH:0];//8192 thanh ghi,moi thanh ghi 16bits
 
 // The asynchronous read logic
-assign regcep_out = registers[regcep_addr];
+//assign regcep_out = registers[regcep_addr];
+reg [15:0] regcep_out;
 
-always@(posedge clk or negedge reset)
+initial begin 
+  $readmemh("sample.txt", registers);   
+  $display ("%h value",registers[1]);
+end
+
+always@(posedge clk)
 begin 
-  if(reset==0)
-    begin
-    for(i=0;i<4500;i=i+1) 
-      begin
-        registers[i]<=0;
-      end
-    for(j=4500;j<WIDTH;j=j+1) 
-      begin
-        registers[j]<=0;
-      end
-    end
-  else
-    if(regcep_wren)// The synchronous write logic
-      registers[regcep_addr]<=regcep_in;
+    if(~regcep_wren)// The synchronous write logic
+         regcep_out = registers[regcep_addr];
 end
 endmodule

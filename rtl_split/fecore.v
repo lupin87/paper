@@ -1,10 +1,11 @@
 module fecore(ram_datain,ram_address,
       regcep_in,regcep_addr,regcep_wren,
       framenum,shiftc,shiftd,
-      start,ready,fefinish,fs,clk,reset);
+      start,ready,fefinish,fs,clk,reset, rd_addr, rd_en, ram_data_in);
       
 input [7:0]ram_datain;//from Speech RAM
 reg [15:0]ram_data;//
+input [15:0]ram_data_in;//
 input start;
 input ready;//ready=1:bat dau doc data tu speech RAM, ready=0: doc thong so mo hinh
 input [3:0]shiftc;//shift the cepstrum
@@ -14,6 +15,8 @@ input clk,reset;
 
 output  [7:0]framenum;
 output fefinish;
+output [7:0] rd_addr;
+output       rd_en;
 
 output [15:0]ram_address;//to Speech RAM (ram_address={ram_addri,ram_addrt})
 
@@ -70,6 +73,7 @@ wire [1:0]regc_sel;
 
 wire [14:0]ram_addri;
 wire ram_addrt;
+wire [7:0]regfft_addrt; //Thuong 29Oct13
 
 wire square_en;
 wire [30:0]square_out;
@@ -124,6 +128,7 @@ wire [15:0]tdelta_out;
 wire delta_new,delta_sub,delta_shift,delta_en;
 
 assign ram_address={ram_addri,ram_addrt}; 
+assign rd_addr = regfft_addrt;
 
 always@(posedge clk or negedge reset)
 begin
@@ -173,7 +178,7 @@ end
 //regfft_clear=1:xoa noi dung thanh ghi regfft_inr va regfft_ini
 //regfft_clear=0 va regfft_insel=1:ghi noi dung cac tang FFT vao thanh ghi regfft
 assign regfft_ini=(regfft_insel & ~regfft_clear)?addsubfft_outi:0;//phan ao output cua FFT
-assign regfft_inrt=(regfft_insel)?addsubfft_outr:{{24{ram_data[15]}},ram_data};
+assign regfft_inrt=(regfft_insel)?addsubfft_outr:{{24{ram_data_in[15]}},ram_data_in};
 assign regfft_inr=(regfft_clear)?0:regfft_inrt;//phan thuc output cua FFT
 
 assign addsubfft_regfftr=(addsubfft_shift)?{regfft_outr[33:0],6'b0}:regfft_outr;
@@ -253,7 +258,7 @@ fecon fecon(.ram_addr(ram_addri),.ram_addrt(ram_addrt),
       .preemp_en(preemp_en),.preemp_en_out(preemp_en_out),.preemp_new(preemp_new),.preemp_state_en(preemp_state_en),
       .cham_addr(cham_addr),
       .win_en(win_en),.win_en_mask (win_en_mask),
-      .regfft_wren(regfft_wren),.regfft_addr(regfft_addr),
+      .regfft_wren(regfft_wren),.regfft_addr(regfft_addr), .regfft_addrt(regfft_addrt), .rd_en(rd_en),
       .regfft_insel(regfft_insel),.regfft_clear(regfft_clear),
       .cfft_addr(cfft_addr),
       .cm_en(cm_en),.comadd_en(comadd_en),.cm_shift(cm_shift),

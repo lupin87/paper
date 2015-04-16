@@ -6,8 +6,8 @@ module fecon(ram_addr,ram_addrt,
       preemp_en,preemp_en_out,preemp_new,preemp_state_en,
       cham_addr,
       win_en,win_en_mask,
-      regfft_wren,regfft_addr,regfft_insel,regfft_clear,
-      cfft_addr,
+      regfft_wren,regfft_addr, regfft_addrt, regfft_insel,regfft_clear,
+      cfft_addr, rd_en,
       cm_en,comadd_en,cm_shift,
       addsubfft_en,addsubfft_sel,addsubfft_shift,
       sroot_en,
@@ -32,6 +32,7 @@ reg [31:0]ram_addr_st;
 reg ram_addrt;
 
 output square_en;
+output rd_en;
 
 output eadder_en,eadder_sel,eadder_new;
 reg eadder_en,eadder_sel,eadder_new,eadder_new1;
@@ -57,10 +58,11 @@ reg win_en;
 
 output regfft_wren;
 output [7:0]regfft_addr;
+output [8:0]regfft_addrt;
 output regfft_insel,regfft_clear;
 reg regfft_wren;
 reg [7:0]regfft_addr;
-reg [7:0]regfft_addrt; //Thuong 29Oct13
+reg [8:0]regfft_addrt; //Thuong 29Oct13
 reg regfft_insel,regfft_clear;
 
 output [6:0]cfft_addr;
@@ -144,6 +146,7 @@ reg [7:0]frame_addr;//address for eriting frames,true framenum + 1
 reg [4:0]cep_addr;
 reg [31:0]count_addr; //Thuong 29Oct13
 
+assign rd_en=regfft_wren && (state == 2); // Thuong change for frame calculation
 //assign square_en=preemp_new^preemp_en; // Thuong change for frame calculation
 assign square_en=preemp_en; // Thuong change for frame calculation
 //Thuong change for frame 
@@ -413,7 +416,7 @@ begin
 //     end
 //     else
 //     begin
-      if(regfft_addrt==255) begin
+      if(regfft_addrt==256) begin
           ram_addr<=ram_addr_st;
           regfft_addr<=1;
           regfft_addrt<=0;
@@ -449,7 +452,7 @@ begin
          regfft_addr<=1;
          regfft_addrt<=0;
          regfft_wren<=0;
-         state<=5;
+         state<=4;
         end
       else
          begin
@@ -529,105 +532,106 @@ begin
   end
   4://clear regfft, co sua regc_addr
   begin
-    case (statef) 
-        0 : begin
-              if(regfft_addrt==162) //Thuong add
-               statef <=1;
-            end
-        1 : begin
-               statef <=2;
-            end
-        2 : 
-          begin
-           if(regfft_addrt==164) //Thuong add
-              begin //Thuong add
-                 regc_addr[6:4]<=regc_addrt; //Thuong add
-                 regc_addr[3:0]<=12; //Thuong add
-                 regc_sel<=1; //Thuong add
-                 regc_wren<=1; //Thuong add
-                 //if (frame_num != 0) 
-                     reglog_addr <= regc_addrt;
-                 statef <=3;
-             end //Thuong add
-              
-          end
-        3 :
-          begin
-//              if(regfft_addrt==161) //Thuong add
-//                begin //Thuong add
-                 regc_wren<=0; //Thuong add
-                 regc_sel<=2; //Thuong add
-                 regc_addr[6:4]<=regc_addrt; //Thuong add
-                 regc_addr[3:0]<=0; //Thuong add
-                 statef <=4;
-//                end //Thuong add
-          end
-        4 : begin
-               if (frame_num != 0 && reglog_addr != 4) begin
-               reglog_addr <= reglog_addr + 1;
-               end
-               else begin
-               reglog_addr <= 0;
-               end
-               statef <=5;
-            end
-        5 : begin
-               statef <=0;
-            end
-    endcase
-    ram_addrt<=1;//them
-    log_sel<=0;
-// Thuong modify timing of log_overf    if(log_overf==1)
-// Thuong modify timing of log_overf    begin
-// Thuong modify timing of log_overf      fefinish<=1;
-// Thuong modify timing of log_overf      //framenum<=frame_addr;//sua lai
-// Thuong modify timing of log_overf      framenum<=frame_addr-3;//frame_addr:so vecto trich dac trung/sua
-// Thuong modify timing of log_overf      ram_addr<=0;
-// Thuong modify timing of log_overf      ram_addrt<=0;
-// Thuong modify timing of log_overf      statef<=0;
-// Thuong modify timing of log_overf      state<=0;
-// Thuong modify timing of log_overf    end
-//    else
-//     begin
-      if(regfft_addrt==0)
-        begin
-         regfft_insel<=1;
-         regfft_clear<=0;
-         addsubfft_sel<=1;//moi them vao ngay 18/7/2010
-         regfft_addr<=1;
-         regfft_addrt<=0;
-         regfft_wren<=~regfft_wren;
-         addmel_new<=0;//moi sua
-         addmel_en<=0;//moi sua
-         regmel_addr<=0;
-         state<=state+1;
-        end
-      else
-         begin
-           regfft_addrt<=regfft_addrt+1;
-           regfft_addr<=regfft_addrt;//moi them vao
-           regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
-            regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
-         end
-// Thuong change to State=3 Statef = 1     if(frame_num!=0)
-// Thuong change to State=3 Statef = 1     begin 
-// Thuong change to State=3 Statef = 1//       if(regfft_addrt==82) Thuong add
-// Thuong change to State=3 Statef = 1       if(regfft_addrt==161)
-// Thuong change to State=3 Statef = 1          begin
-// Thuong change to State=3 Statef = 1             regc_addr[6:4]<=regc_addrt;
-// Thuong change to State=3 Statef = 1             regc_addr[3:0]<=12;
-// Thuong change to State=3 Statef = 1             regc_sel<=1;
-// Thuong change to State=3 Statef = 1             regc_wren<=1;
-// Thuong change to State=3 Statef = 1          end
-// Thuong change to State=3 Statef = 1       if(regfft_addrt==83)
-// Thuong change to State=3 Statef = 1         begin
-// Thuong change to State=3 Statef = 1             regc_wren<=0;
-// Thuong change to State=3 Statef = 1             regc_sel<=2;
-// Thuong change to State=3 Statef = 1             regc_addr[6:4]<=regc_addrt;
-// Thuong change to State=3 Statef = 1             regc_addr[3:0]<=0;
-// Thuong change to State=3 Statef = 1         end
-// Thuong change to State=3 Statef = 1      end
-//      end
+      state <=5;
+//    case (statef) 
+//        0 : begin
+//              if(regfft_addrt==162) //Thuong add
+//               statef <=1;
+//            end
+//        1 : begin
+//               statef <=2;
+//            end
+//        2 : 
+//          begin
+//           if(regfft_addrt==164) //Thuong add
+//              begin //Thuong add
+//                 regc_addr[6:4]<=regc_addrt; //Thuong add
+//                 regc_addr[3:0]<=12; //Thuong add
+//                 regc_sel<=1; //Thuong add
+//                 regc_wren<=1; //Thuong add
+//                 //if (frame_num != 0) 
+//                     reglog_addr <= regc_addrt;
+//                 statef <=3;
+//             end //Thuong add
+//              
+//          end
+//        3 :
+//          begin
+////              if(regfft_addrt==161) //Thuong add
+////                begin //Thuong add
+//                 regc_wren<=0; //Thuong add
+//                 regc_sel<=2; //Thuong add
+//                 regc_addr[6:4]<=regc_addrt; //Thuong add
+//                 regc_addr[3:0]<=0; //Thuong add
+//                 statef <=4;
+////                end //Thuong add
+//          end
+//        4 : begin
+//               if (frame_num != 0 && reglog_addr != 4) begin
+//               reglog_addr <= reglog_addr + 1;
+//               end
+//               else begin
+//               reglog_addr <= 0;
+//               end
+//               statef <=5;
+//            end
+//        5 : begin
+//               statef <=0;
+//            end
+//    endcase
+//    ram_addrt<=1;//them
+//    log_sel<=0;
+//// Thuong modify timing of log_overf    if(log_overf==1)
+//// Thuong modify timing of log_overf    begin
+//// Thuong modify timing of log_overf      fefinish<=1;
+//// Thuong modify timing of log_overf      //framenum<=frame_addr;//sua lai
+//// Thuong modify timing of log_overf      framenum<=frame_addr-3;//frame_addr:so vecto trich dac trung/sua
+//// Thuong modify timing of log_overf      ram_addr<=0;
+//// Thuong modify timing of log_overf      ram_addrt<=0;
+//// Thuong modify timing of log_overf      statef<=0;
+//// Thuong modify timing of log_overf      state<=0;
+//// Thuong modify timing of log_overf    end
+////    else
+////     begin
+//      if(regfft_addrt==0)
+//        begin
+//         regfft_insel<=1;
+//         regfft_clear<=0;
+//         addsubfft_sel<=1;//moi them vao ngay 18/7/2010
+//         regfft_addr<=1;
+//         regfft_addrt<=0;
+//         regfft_wren<=~regfft_wren;
+//         addmel_new<=0;//moi sua
+//         addmel_en<=0;//moi sua
+//         regmel_addr<=0;
+//         state<=state+1;
+//        end
+//      else
+//         begin
+//           regfft_addrt<=regfft_addrt+1;
+//           regfft_addr<=regfft_addrt;//moi them vao
+//           regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
+//            regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
+//         end
+//// Thuong change to State=3 Statef = 1     if(frame_num!=0)
+//// Thuong change to State=3 Statef = 1     begin 
+//// Thuong change to State=3 Statef = 1//       if(regfft_addrt==82) Thuong add
+//// Thuong change to State=3 Statef = 1       if(regfft_addrt==161)
+//// Thuong change to State=3 Statef = 1          begin
+//// Thuong change to State=3 Statef = 1             regc_addr[6:4]<=regc_addrt;
+//// Thuong change to State=3 Statef = 1             regc_addr[3:0]<=12;
+//// Thuong change to State=3 Statef = 1             regc_sel<=1;
+//// Thuong change to State=3 Statef = 1             regc_wren<=1;
+//// Thuong change to State=3 Statef = 1          end
+//// Thuong change to State=3 Statef = 1       if(regfft_addrt==83)
+//// Thuong change to State=3 Statef = 1         begin
+//// Thuong change to State=3 Statef = 1             regc_wren<=0;
+//// Thuong change to State=3 Statef = 1             regc_sel<=2;
+//// Thuong change to State=3 Statef = 1             regc_addr[6:4]<=regc_addrt;
+//// Thuong change to State=3 Statef = 1             regc_addr[3:0]<=0;
+//// Thuong change to State=3 Statef = 1         end
+//// Thuong change to State=3 Statef = 1      end
+////      end
   end
   5://FFT 1st,mel
   begin
