@@ -1,9 +1,9 @@
 wire signed [20:0] out1;
 wire signed [39:0] out2;
 wire signed [15:0] out3;
-assign out1 = test_core_tb.test_core.fecore.window.out;
-assign out2 = test_core_tb.test_core.fecore.regfft.fft_inr;
-assign out3 = test_core_tb.test_core.fecore.preemp.in;
+// assign out1 = test_core_tb.test_core.fecore.window.out;
+// assign out2 = test_core_tb.test_core.fecore.regfft.fft_inr;
+// assign out3 = test_core_tb.test_core.fecore.preemp.in;
 
 integer f;
 //initial begin
