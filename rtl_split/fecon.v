@@ -373,47 +373,46 @@ begin
   end
   2://preemp and windowing, energy calculation
   begin
-    if(log_overf==1) //End sampling
-    begin
-      fefinish<=1;
-      //framenum<=frame_addr;//sua lai
-      framenum<=frame_addr-4;//frame_addr:so vecto trich dac trung/sua
-//      framenum<=frame_addr;//frame_addr:so vecto trich dac trung/sua
-      ram_addr<=0;
-      ram_addrt<=0;
-      log_sel<=0; //Thuong add
-      eadder_en<=0; //Thuong add
-      preemp_en<=0; //Thuong add
-      reglog_wren<=0; //Thuong add
-      win_en<=0; //Thuong add
-      statef<=0;
-      state<=0;
-    end
-    else begin
-    win_en<=~win_en;
-    if (regfft_addrt==158) begin
-       log_sel<=1; // Thuong change to adjust timing
-    end
-    if (regfft_addrt==159) begin
-       log_sel<=0; // Thuong change to adjust timing
-    end
-       preemp_en<=~preemp_en;
-       eadder_en<=~eadder_en;
+//     if(log_overf==1) //End sampling
+//     begin
+//       fefinish<=1;
+//       //framenum<=frame_addr;//sua lai
+//       framenum<=frame_addr-4;//frame_addr:so vecto trich dac trung/sua
+// //      framenum<=frame_addr;//frame_addr:so vecto trich dac trung/sua
+//       ram_addr<=0;
+//       ram_addrt<=0;
+//       log_sel<=0; //Thuong add
+//       eadder_en<=0; //Thuong add
+//       preemp_en<=0; //Thuong add
+//       reglog_wren<=0; //Thuong add
+//       win_en<=0; //Thuong add
+//       statef<=0;
+//       state<=0;
+//     end
+//     else begin
+//     win_en<=~win_en;
+//     if (regfft_addrt==158) begin
+//        log_sel<=1; // Thuong change to adjust timing
+//     end
+//     if (regfft_addrt==159) begin
+//        log_sel<=0; // Thuong change to adjust timing
+//     end
+//        eadder_en<=~eadder_en;
     
-    if(preemp_en==1)
-    begin
-      ram_addrt<=1;
-//       regfft_wren<=0;
-//Thuong 29Oct13      if(regfft_addrt==78)
-      if(regfft_addrt==255)
-      begin
-        regc_addr[6:4]<=7;
-        regc_addr[3:0]<=0;
-        preemp_new<=1;//them
-      end
-    end
-    else
-    begin
+//     if(preemp_en==1)
+//     begin
+//       ram_addrt<=1;
+// //       regfft_wren<=0;
+// //Thuong 29Oct13      if(regfft_addrt==78)
+//       if(regfft_addrt==255)
+//       begin
+//         regc_addr[6:4]<=7;
+//         regc_addr[3:0]<=0;
+//         preemp_new<=1;//them
+//       end
+//     end
+//     else
+//     begin
       if(regfft_addrt==255) begin
           ram_addr<=ram_addr_st;
           regfft_addr<=1;
@@ -422,17 +421,23 @@ begin
           regfft_wren<=0;
       end
       else begin
-          regfft_wren<=~regfft_wren;
+          preemp_en<=~preemp_en;
           ram_addr<=ram_addr+1;
-          regfft_addrt<=regfft_addrt+1;
-          regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
-          regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
+          if (preemp_en == 1) begin
+             regfft_addrt<=regfft_addrt+1;
+             regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
+                          regfft_addrt[4],regfft_addrt[5],regfft_addrt[6],regfft_addrt[7]}; // thuong add [7]
+             regfft_wren<=1;
+          end
+          else begin
+             regfft_wren<=0;
+          end
       end
       ram_addrt<=0;
-      cham_addr<=cham_addr+1;
+//       cham_addr<=cham_addr+1;
 //       regfft_addr<=regfft_addrt;//moi them vao
-    end
-  end
+//     end
+//   end
  end  
   3://finish preemp and windowing, energy calculation
   begin
