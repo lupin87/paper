@@ -128,29 +128,7 @@ wire [19:0]delta_out;//he so delta
 wire [15:0]tdelta_out;
 wire delta_new,delta_sub,delta_shift,delta_en;
 
-assign ram_address={ram_addri,ram_addrt}; 
 assign rd_addr = regfft_addrt;
-
-always@(posedge clk or negedge reset)
-begin
-  if(reset==0)
-  begin
-    ram_data<=0;
-  end
-  else
-  begin
-    case(ram_addrt)
-    0:
-    begin
-      ram_data[7:0]<=ram_datain;
-    end
-    1:
-    begin
-      ram_data[15:8]<=ram_datain;
-    end
-    endcase
-  end
-end
 
 //assign taddsubdct_out=(shiftc==15)?addsubdct_out[26:11]:16'bz;
 //assign taddsubdct_out=(shiftc==14)?addsubdct_out[26:11]:16'bz;
@@ -251,33 +229,10 @@ addsubfft addsubfft(addsubfft_regfftr,addsubfft_regffti,cm_outr,cm_outi,addsubff
 //
 //delta delta(delta_out,regc_out,delta_new,delta_sub,delta_shift,delta_en,clk,reset);
 
-fecon fecon(.ram_addr(ram_addri),.ram_addrt(ram_addrt),
-      .square_en(square_en),
-      .eadder_en(eadder_en),.eadder_new(eadder_new),.eadder_sel(eadder_sel),
-      .ereg_we(ereg_we),
-      .log_en(log_en),.log_sel(log_sel),.log_overf(log_overf),
-      .preemp_en(preemp_en),.preemp_en_out(preemp_en_out),.preemp_new(preemp_new),.preemp_state_en(preemp_state_en),
-      .cham_addr(cham_addr),
-      .win_en(win_en),.win_en_mask (win_en_mask),
-      .regfft_wren(regfft_wren),.regfft_addr(regfft_addr), .regfft_addrt(regfft_addrt), .rd_en(rd_en),
+fecon fecon(      .regfft_wren(regfft_wren),.regfft_addr(regfft_addr), .regfft_addrt(regfft_addrt), .rd_en(rd_en),
       .regfft_insel(regfft_insel),.regfft_clear(regfft_clear),
       .cfft_addr(cfft_addr),
       .cm_en(cm_en),.comadd_en(comadd_en),.cm_shift(cm_shift),
       .addsubfft_en(addsubfft_en),.addsubfft_sel(addsubfft_sel),.addsubfft_shift(addsubfft_shift),
-      .sroot_en(sroot_en),
-      .regffte_addr(regffte_addr),.regffte_wren(regffte_wren),
-      .addmel_en(addmel_en),.addmel_sel(addmel_sel),.addmel_new(addmel_new),
-      .regmel_addr(regmel_addr),.regmel_wren(regmel_wren),
-      .regdct_addr(regdct_addr),.regdct_wren(regdct_wren),
-      .cdct_addr(cdct_addr),
-      .muldct_en(muldct_en),
-      .addsubdct_en(addsubdct_en),.addsubdct_sub(addsubdct_sub),
-      .addsubdct_new(addsubdct_new),
-      .regc_addr(regc_addr),.regc_wren(regc_wren),.regc_sel(regc_sel),
-      .reglog_addr(reglog_addr), .reglog_wren(reglog_wren),
-      .delta_new(delta_new),.delta_sub(delta_sub),.delta_shift(delta_shift),
-      .delta_en(delta_en),
-      .regcep_addr(regcep_addr),.regcep_wren(regcep_wren),
-      .framenum(framenum),
-      .start(start),.ready(ready),.fefinish(fefinish),.fft_finish(fft_finish),.fs(fs),.clk(clk),.reset(reset));
+      .start(start),.fft_finish(fft_finish),.clk(clk),.reset(reset));
 endmodule

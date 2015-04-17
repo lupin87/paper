@@ -1,66 +1,18 @@
-module fecon(ram_addr,ram_addrt,
-      square_en,
-      eadder_en,eadder_new,eadder_sel,
-      ereg_we,
-      log_en,log_sel,log_overf,
-      preemp_en,preemp_en_out,preemp_new,preemp_state_en,
-      cham_addr,
-      win_en,win_en_mask,
-      regfft_wren,regfft_addr, regfft_addrt, regfft_insel,regfft_clear,
+module fecon( regfft_wren,regfft_addr, regfft_addrt, regfft_insel,regfft_clear,
       cfft_addr, rd_en,
       cm_en,comadd_en,cm_shift,
       addsubfft_en,addsubfft_sel,addsubfft_shift,
-      sroot_en,
-      regffte_addr,regffte_wren,
-      addmel_en,addmel_sel,addmel_new,
-      regmel_addr,regmel_wren,
-      regdct_addr,regdct_wren,
-      cdct_addr,
-      muldct_en,
-      addsubdct_en,addsubdct_sub,addsubdct_new,
-      regc_addr,regc_wren,regc_sel,
-      reglog_addr, reglog_wren,
-      delta_new,delta_sub,delta_shift,delta_en,
-      regcep_addr,regcep_wren,
-      framenum,
-      start,ready,fefinish,fft_finish,fs,clk,reset);
+      start,fft_finish,clk,reset);
 
-output [14:0]ram_addr;//80*256
-output ram_addrt;//16bit in 2 8bit
-reg [14:0]ram_addr;
-reg [31:0]ram_addr_st;
-reg ram_addrt;
-
-output square_en;
 output rd_en;
 
-output eadder_en,eadder_sel,eadder_new;
-reg eadder_en,eadder_sel,eadder_new,eadder_new1;
-
-output ereg_we;
-reg ereg_we;
-
-input log_overf;
-output log_en,log_sel;
-reg log_sel;
-
-output preemp_en,preemp_new;
-output preemp_en_out;
-output preemp_state_en;
-reg preemp_en,preemp_new;
-
-output [7:0]cham_addr; //Thuong
-reg [7:0]cham_addr;
-
-output win_en;
-output win_en_mask;
-reg win_en;
 
 output regfft_wren;
 output [7:0]regfft_addr;
 output [8:0]regfft_addrt;
 output regfft_insel,regfft_clear;
 reg regfft_wren;
+reg preemp_en;
 reg [7:0]regfft_addr;
 reg [8:0]regfft_addrt; //Thuong 29Oct13
 reg regfft_insel,regfft_clear;
@@ -74,68 +26,10 @@ reg cm_en,comadd_en,cm_shift;
 output addsubfft_en,addsubfft_sel,addsubfft_shift;
 reg addsubfft_en,addsubfft_sel,addsubfft_shift;
 
-output sroot_en;
-reg sroot_en;
+input start,clk,reset;
 
-//output [5:0]regffte_addr;
-output [6:0]regffte_addr; // Thuong for 256 FFT
-output regffte_wren;
-reg [6:0]regffte_addr; // Thuong for 256 FFT
-reg regffte_wren;
-
-output addmel_en,addmel_sel,addmel_new;
-reg addmel_en,addmel_sel,addmel_new;
-
-
-output [4:0]regmel_addr;
-output reg regmel_wren;//moi sua
-reg [4:0]regmel_addr;
-
-output [4:0]regdct_addr;
-output regdct_wren;
-reg [4:0]regdct_addr;
-reg regdct_wren;
-
-output [7:0]cdct_addr;
-reg [7:0]cdct_addr;
-
-output muldct_en;
-reg muldct_en;
-
-output addsubdct_en,addsubdct_sub,addsubdct_new;
-reg addsubdct_en,addsubdct_sub,addsubdct_new;
-
-output [6:0]regc_addr;
-output [2:0]reglog_addr; //Thuong add
-output      reglog_wren; //Thuong add
-output regc_wren;
-output [1:0]regc_sel;
-reg [6:0]regc_addr;
-reg [2:0]reglog_addr;
-reg reglog_wren1;
-reg reglog_wren2;
-reg reglog_wren;
-reg [2:0]regc_addrt,regc_addrc;
-reg [2:0]regc_addrt_mod;
-reg regc_wren;
-reg [1:0]regc_sel;
-
-output delta_new,delta_sub,delta_shift,delta_en;
-reg delta_new,delta_sub,delta_shift,delta_en;
-
-output [12:0]regcep_addr;
-output regcep_wren;
-reg regcep_wren;
-
-input start,ready,fs,clk,reset;
-
-output fefinish;
 output fft_finish;
-reg fefinish;
 reg fft_finish;
-
-output [7:0]framenum;
-reg [7:0]framenum;
 
 reg [3:0]state;
 reg [3:0]statef;//for fft
@@ -156,9 +50,6 @@ begin
   if(reset==0)
   begin
     count_addr<=1; // Thuong 29Oct13
-    ram_addr<=0;
-    ram_addr_st<=0;
-    ram_addrt<=0;
     
     regfft_wren<=0;
     regfft_addr<=0;
@@ -170,7 +61,6 @@ begin
     addsubfft_sel<=0;
     addsubfft_shift<=0;
     
-    regcep_wren<=0;
     
     statem<=0;
     counterf<=0;
@@ -192,7 +82,6 @@ begin
   2://preemp and windowing, energy calculation
   begin
       if(regfft_addrt==256) begin
-          ram_addr<=ram_addr_st;
           regfft_addr<=1;
           regfft_addrt<=0;
           state<=3;
@@ -200,7 +89,6 @@ begin
       end
       else begin
           preemp_en<=~preemp_en;
-          ram_addr<=ram_addr+1;
           if (preemp_en == 1) begin
              regfft_addrt<=regfft_addrt+1;
              regfft_addr<={regfft_addrt[0],regfft_addrt[1],regfft_addrt[2],regfft_addrt[3],
@@ -211,7 +99,6 @@ begin
              regfft_wren<=0;
           end
       end
-      ram_addrt<=0;
  end  
   3://finish preemp and windowing, energy calculation
   begin
@@ -454,7 +341,6 @@ begin
           regfft_addr<=0;
           counterf<=0;
           addsubfft_shift<=0;
-          sroot_en<=1;//moi them
           statem<=0;
           cm_en<=0;//moi them vao
           state<=state+1;
@@ -518,16 +404,9 @@ begin
   begin
   regfft_addr<=regfft_addr+1;
   
-  if(regfft_addr==0)
-    begin
-    regffte_wren<=1;
-    regffte_addr<=0;
-    end
    if(regfft_addr==255)
   begin
         regfft_insel<=0;
-        ram_addr<=0;
-        ram_addrt<=0;
         statef<=0;
         state<=8;
     end
