@@ -1,7 +1,7 @@
 module fecore(ram_datain,ram_address,
       regcep_in,regcep_addr,regcep_wren,
       framenum,shiftc,shiftd,
-      start,ready,fefinish,fs,clk,reset, rd_addr, rd_en, ram_data_in);
+      start,ready,fefinish,fft_finish,fs,clk,reset, rd_addr, rd_en, ram_data_in);
       
 input [7:0]ram_datain;//from Speech RAM
 reg [15:0]ram_data;//
@@ -17,6 +17,7 @@ output  [7:0]framenum;
 output fefinish;
 output [7:0] rd_addr;
 output       rd_en;
+output fft_finish;
 
 output [15:0]ram_address;//to Speech RAM (ram_address={ram_addri,ram_addrt})
 
@@ -278,5 +279,5 @@ fecon fecon(.ram_addr(ram_addri),.ram_addrt(ram_addrt),
       .delta_en(delta_en),
       .regcep_addr(regcep_addr),.regcep_wren(regcep_wren),
       .framenum(framenum),
-      .start(start),.ready(ready),.fefinish(fefinish),.fs(fs),.clk(clk),.reset(reset));
+      .start(start),.ready(ready),.fefinish(fefinish),.fft_finish(fft_finish),.fs(fs),.clk(clk),.reset(reset));
 endmodule

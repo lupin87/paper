@@ -23,7 +23,7 @@ module fecon(ram_addr,ram_addrt,
       delta_new,delta_sub,delta_shift,delta_en,
       regcep_addr,regcep_wren,
       framenum,
-      start,ready,fefinish,fs,clk,reset);
+      start,ready,fefinish,fft_finish,fs,clk,reset);
 
 output [14:0]ram_addr;//80*256
 output ram_addrt;//16bit in 2 8bit
@@ -130,12 +130,14 @@ reg regcep_wren;
 input start,ready,fs,clk,reset;
 
 output fefinish;
+output fft_finish;
 reg fefinish;
+reg fft_finish;
 
 output [7:0]framenum;
 reg [7:0]framenum;
 
-reg [2:0]state;
+reg [3:0]state;
 reg [3:0]statef;//for fft
 reg [4:0]statem;//for mel
 reg d1,d2,dt;
@@ -145,6 +147,7 @@ reg [7:0]frame_num;//maximum 256 frames
 reg [7:0]frame_addr;//address for eriting frames,true framenum + 1
 reg [4:0]cep_addr;
 reg [31:0]count_addr; //Thuong 29Oct13
+reg [15:0]count_fn; //Thuong 29Oct13
 
 assign rd_en=regfft_wren && (state == 2); // Thuong change for frame calculation
 //assign square_en=preemp_new^preemp_en; // Thuong change for frame calculation
@@ -276,146 +279,112 @@ begin
     counterf<=0;
     state<=0;
     fefinish<=0;
+    fft_finish<=0;
+    count_fn<=0;
   end
   else
   begin
   case(state)
   0://wait for start signal
     begin
-    case(statef)
-    0:
-      begin
-      if(ready==1)
-      begin
-        fefinish<=0;
-        
-        regfft_addr<=0;
-        regfft_addrt<=0;
-        regfft_clear<=0;
-        regfft_wren<=0;
-        
-        regc_addr<=0;
-        regc_addrt<=0;
-        regc_wren<=0;
-        
-        frame_num<=0;
-        frame_addr<=0;
-        regc_addrc<=2;
-        
-        dt<=0;
-        statef<=statef+1;
-      end
-    end
-    1:
-    begin
-      if(start==0 && fs==0)
-      begin
-        ram_addrt<=1;
-        statef<=statef+1;
-      end
-    end
-    2:
-    begin
-      ram_addrt<=0;
-      preemp_new<=1;
-      preemp_en<=1;
-      ram_addr<=ram_addr+1;
-      statef<=0;
-      state<=state+1;
-    end
-    endcase
-  end
-  1://start preemp and windowing, energy calculation
-  begin
-    preemp_new<=0;
-    preemp_en<=~preemp_en;
-    //if((preemp_en==1) && (count_addr != 1))
-    if((count_addr != 1)&&(statef==1))
-    begin
-	ram_addr <= ram_addr + 1;
-    end
-   else if (preemp_en==0 ) begin
-	ram_addr <= ram_addr + 1;
-    end
-    case(statef)
-    0:
-    begin
-      ram_addrt<=1;
-      statef<=statef+1;
-    end
-    1:
-    begin
-      ram_addrt<=0;
-      if (frame_num == 0) begin      // Thuong added for frame calculation
-          eadder_en<=~eadder_en; // Thuong added for frame calculation
-          eadder_new<=1;         // Thuong added for frame calculation
-      end                        // Thuong added for frame calculation
-      statef<=statef+1;
-    end
-    2:
-    begin
-      ram_addrt<=1;
-      eadder_new<=0; // Thuong added for frame calculation
-      if (frame_num == 0) begin      // Thuong added for frame calculation
-      eadder_en<=~eadder_en; // Thuong added for frame calculation
-      end                        // Thuong added for frame calculation
-      statef<=statef+1;
-    end
-    3:
-    begin
-      //ram_addr <= ram_addr + 1;
-      ram_addrt<=0;
-      win_en<=~win_en;
-      regfft_insel<=0;
-      eadder_en<=~eadder_en; // Thuong added for frame calculation
-      cham_addr<=cham_addr+1;
-      statef<=0;
-      state<=state+1;
-    end
-    endcase
+    if (start == 1) begin
+      state <= 2;
+   end 
+//     case(statef)
+//     0:
+//       begin
+//       if(ready==1)
+//       begin
+//         fefinish<=0;
+//         
+//         regfft_addr<=0;
+//         regfft_addrt<=0;
+//         regfft_clear<=0;
+//         regfft_wren<=0;
+//         
+//         regc_addr<=0;
+//         regc_addrt<=0;
+//         regc_wren<=0;
+//         
+//         frame_num<=0;
+//         frame_addr<=0;
+//         regc_addrc<=2;
+//         
+//         dt<=0;
+//         statef<=statef+1;
+//       end
+//     end
+//     1:
+//     begin
+//       if(start==0 && fs==0)
+//       begin
+//         ram_addrt<=1;
+//         statef<=statef+1;
+//       end
+//     end
+//     2:
+//     begin
+//       ram_addrt<=0;
+//       preemp_new<=1;
+//       preemp_en<=1;
+//       ram_addr<=ram_addr+1;
+//       statef<=0;
+//       state<=state+1;
+//     end
+//     endcase
+//   end
+//   1://start preemp and windowing, energy calculation
+//   begin
+//     preemp_new<=0;
+//     preemp_en<=~preemp_en;
+//     //if((preemp_en==1) && (count_addr != 1))
+//     if((count_addr != 1)&&(statef==1))
+//     begin
+// 	ram_addr <= ram_addr + 1;
+//     end
+//    else if (preemp_en==0 ) begin
+// 	ram_addr <= ram_addr + 1;
+//     end
+//     case(statef)
+//     0:
+//     begin
+//       ram_addrt<=1;
+//       statef<=statef+1;
+//     end
+//     1:
+//     begin
+//       ram_addrt<=0;
+//       if (frame_num == 0) begin      // Thuong added for frame calculation
+//           eadder_en<=~eadder_en; // Thuong added for frame calculation
+//           eadder_new<=1;         // Thuong added for frame calculation
+//       end                        // Thuong added for frame calculation
+//       statef<=statef+1;
+//     end
+//     2:
+//     begin
+//       ram_addrt<=1;
+//       eadder_new<=0; // Thuong added for frame calculation
+//       if (frame_num == 0) begin      // Thuong added for frame calculation
+//       eadder_en<=~eadder_en; // Thuong added for frame calculation
+//       end                        // Thuong added for frame calculation
+//       statef<=statef+1;
+//     end
+//     3:
+//     begin
+//       //ram_addr <= ram_addr + 1;
+//       ram_addrt<=0;
+//       win_en<=~win_en;
+//       regfft_insel<=0;
+//       eadder_en<=~eadder_en; // Thuong added for frame calculation
+//       cham_addr<=cham_addr+1;
+//       statef<=0;
+//       state<=state+1;
+//     end
+//     endcase
   end
   2://preemp and windowing, energy calculation
   begin
 //     if(log_overf==1) //End sampling
-//     begin
-//       fefinish<=1;
-//       //framenum<=frame_addr;//sua lai
-//       framenum<=frame_addr-4;//frame_addr:so vecto trich dac trung/sua
-// //      framenum<=frame_addr;//frame_addr:so vecto trich dac trung/sua
-//       ram_addr<=0;
-//       ram_addrt<=0;
-//       log_sel<=0; //Thuong add
-//       eadder_en<=0; //Thuong add
-//       preemp_en<=0; //Thuong add
-//       reglog_wren<=0; //Thuong add
-//       win_en<=0; //Thuong add
-//       statef<=0;
-//       state<=0;
-//     end
-//     else begin
-//     win_en<=~win_en;
-//     if (regfft_addrt==158) begin
-//        log_sel<=1; // Thuong change to adjust timing
-//     end
-//     if (regfft_addrt==159) begin
-//        log_sel<=0; // Thuong change to adjust timing
-//     end
-//        eadder_en<=~eadder_en;
-    
-//     if(preemp_en==1)
-//     begin
-//       ram_addrt<=1;
-// //       regfft_wren<=0;
-// //Thuong 29Oct13      if(regfft_addrt==78)
-//       if(regfft_addrt==255)
-//       begin
-//         regc_addr[6:4]<=7;
-//         regc_addr[3:0]<=0;
-//         preemp_new<=1;//them
-//       end
-//     end
-//     else
-//     begin
       if(regfft_addrt==256) begin
           ram_addr<=ram_addr_st;
           regfft_addr<=1;
@@ -1795,25 +1764,25 @@ begin
     regffte_addr<=0;
     end
     
-  if(regffte_wren==1)
-    regffte_addr<=regffte_addr+1;
-
-  if(regffte_addr==62)//moi them vao
-  //if(regffte_addr==126)//moi them vao
-    sroot_en<=0;//moi them vao
+//   if(regffte_wren==1)
+//     regffte_addr<=regffte_addr+1;
+// 
+//   if(regffte_addr==62)//moi them vao
+//   //if(regffte_addr==126)//moi them vao
+//     sroot_en<=0;//moi them vao
   
-  if(regffte_addr==63)//Thuong for 256 point
-  //if(regffte_addr==127)//moi them vao
-    begin
-    regffte_addr<=0;//moi them vao
-    regffte_wren<=0;//moi them vao
-    end
+//   if(regffte_addr==63)//Thuong for 256 point
+//   //if(regffte_addr==127)//moi them vao
+//     begin
+//     regffte_addr<=0;//moi them vao
+//     regffte_wren<=0;//moi them vao
+//     end
   
   //if(regfft_addr==65)
     //sroot_en<=0;
   
-  if(sroot_en==0)
-    regffte_wren<=0;
+//   if(sroot_en==0)
+//     regffte_wren<=0;
     
   //if(regffte_wren==0)
     //regffte_addr<=0;
@@ -1821,23 +1790,26 @@ begin
   // if(regfft_addr==66) Thuong modify for timing
    if(regfft_addr==255)
   begin
-      regfft_insel<=0;
-      if(frame_num==255)
-      begin
-        fefinish<=1;
-        framenum<=frame_addr-2;
+        regfft_insel<=0;
         ram_addr<=0;
         ram_addrt<=0;
         statef<=0;
-        state<=0;
-      end
-      else
-      begin
-        frame_num<=frame_num+1;
-        statef<=1;
-        state<=1;
-      end
+        state<=8;
     end
+  end
+ 8 :
+  begin
+        fft_finish<=1;
+        count_fn <= count_fn+1;
+        if (count_fn == 3) begin
+            state<=9;
+            count_fn <= 0;
+        end
+  end
+ 9 :
+  begin
+        fft_finish<=0;
+        state<=0;
   end
   endcase
 end

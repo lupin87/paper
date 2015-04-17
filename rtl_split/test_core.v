@@ -1,4 +1,4 @@
-module test_core(result_ack,result,overflow,start,clk,reset);
+module test_core(result_ack,result,overflow,start,clk,reset, fft_finish);
 
 input start;
 input clk,reset;
@@ -39,6 +39,7 @@ wire ready;   //from parain
 wire fv_ack;  //bat dau decoder
 wire fs;      //from parain, fs=1 when fefinish=1
 wire fefinish;//fefinish=1-->ket thuc tin hieu ngo vao
+output fft_finish;
 wire [7:0]framenum;
 wire [7:0]rd_addr;
 
@@ -54,7 +55,7 @@ wire [15:0]data_in_de=((regcep_addr[4:0]==12)|(regcep_addr[4:0]==25))?{{10{regce
 fecore fecore(fe_data,fe_address,
       regcep_in,feregcep_addr,regcep_wren,
       framenum,shiftc,shiftd,
-      start,ready,fefinish,fs,clk,reset, rd_addr, rd_en, ram_data_in);
+      start,ready,fefinish,fft_finish,fs,clk,reset, rd_addr, rd_en, ram_data_in);
 			
 decore decore(clk,ready,start,fv_ack,de_data,de_address,
 			data_in_de,deregcep_addr,
